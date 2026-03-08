@@ -287,17 +287,17 @@ func TestBuildStatefulSet_Defaults(t *testing.T) {
 	if psc == nil {
 		t.Fatal("pod security context is nil")
 	}
-	if psc.RunAsNonRoot == nil || !*psc.RunAsNonRoot {
-		t.Error("pod security context: runAsNonRoot should be true")
+	if psc.RunAsNonRoot == nil || *psc.RunAsNonRoot {
+		t.Error("pod security context: runAsNonRoot should be false")
 	}
-	if psc.RunAsUser == nil || *psc.RunAsUser != 1000 {
-		t.Errorf("pod security context: runAsUser = %v, want 1000", psc.RunAsUser)
+	if psc.RunAsUser == nil || *psc.RunAsUser != 0 {
+		t.Errorf("pod security context: runAsUser = %v, want 0", psc.RunAsUser)
 	}
-	if psc.RunAsGroup == nil || *psc.RunAsGroup != 1000 {
-		t.Errorf("pod security context: runAsGroup = %v, want 1000", psc.RunAsGroup)
+	if psc.RunAsGroup == nil || *psc.RunAsGroup != 0 {
+		t.Errorf("pod security context: runAsGroup = %v, want 0", psc.RunAsGroup)
 	}
-	if psc.FSGroup == nil || *psc.FSGroup != 1000 {
-		t.Errorf("pod security context: fsGroup = %v, want 1000", psc.FSGroup)
+	if psc.FSGroup == nil || *psc.FSGroup != 0 {
+		t.Errorf("pod security context: fsGroup = %v, want 0", psc.FSGroup)
 	}
 	if psc.SeccompProfile == nil || psc.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
 		t.Error("pod security context: seccomp profile should be RuntimeDefault")
@@ -328,8 +328,8 @@ func TestBuildStatefulSet_Defaults(t *testing.T) {
 	if csc.AllowPrivilegeEscalation == nil || *csc.AllowPrivilegeEscalation {
 		t.Error("container security context: allowPrivilegeEscalation should be false")
 	}
-	if csc.RunAsNonRoot == nil || !*csc.RunAsNonRoot {
-		t.Error("container security context: runAsNonRoot should be true")
+	if csc.RunAsNonRoot != nil {
+		t.Error("container security context: runAsNonRoot should not be set (governed by pod-level)")
 	}
 	if csc.Capabilities == nil || len(csc.Capabilities.Drop) != 1 || csc.Capabilities.Drop[0] != "ALL" {
 		t.Error("container security context: capabilities should drop ALL")
@@ -3148,9 +3148,9 @@ func TestBuildStatefulSet_CustomPodSecurityContext(t *testing.T) {
 	if *psc.FSGroup != 4000 {
 		t.Errorf("fsGroup = %d, want 4000", *psc.FSGroup)
 	}
-	// runAsNonRoot should still be true (default)
-	if !*psc.RunAsNonRoot {
-		t.Error("runAsNonRoot should still be true")
+	// runAsNonRoot should still be false (default)
+	if *psc.RunAsNonRoot {
+		t.Error("runAsNonRoot should still be false")
 	}
 }
 
@@ -3776,8 +3776,8 @@ func TestBuildStatefulSet_ReadOnlyRootFilesystem_Default(t *testing.T) {
 	main := sts.Spec.Template.Spec.Containers[0]
 
 	csc := main.SecurityContext
-	if csc.ReadOnlyRootFilesystem == nil || !*csc.ReadOnlyRootFilesystem {
-		t.Error("readOnlyRootFilesystem should default to true")
+	if csc.ReadOnlyRootFilesystem == nil || *csc.ReadOnlyRootFilesystem {
+		t.Error("readOnlyRootFilesystem should default to false")
 	}
 }
 
@@ -4111,8 +4111,8 @@ func TestBuildStatefulSet_WithSkills_InitSkillsContainer(t *testing.T) {
 	if sc.AllowPrivilegeEscalation == nil || *sc.AllowPrivilegeEscalation {
 		t.Error("init-skills: allowPrivilegeEscalation should be false")
 	}
-	if sc.RunAsNonRoot == nil || !*sc.RunAsNonRoot {
-		t.Error("init-skills: runAsNonRoot should be true")
+	if sc.RunAsNonRoot == nil || *sc.RunAsNonRoot {
+		t.Error("init-skills: runAsNonRoot should be false")
 	}
 
 	// NPM_CONFIG_IGNORE_SCRIPTS must be set to mitigate supply chain attacks (#91)
@@ -5133,8 +5133,8 @@ func TestBuildStatefulSet_RuntimeDeps_Pnpm(t *testing.T) {
 	if pnpmContainer.SecurityContext.ReadOnlyRootFilesystem == nil || *pnpmContainer.SecurityContext.ReadOnlyRootFilesystem {
 		t.Error("init-pnpm should have writable root filesystem")
 	}
-	if pnpmContainer.SecurityContext.RunAsNonRoot == nil || !*pnpmContainer.SecurityContext.RunAsNonRoot {
-		t.Error("init-pnpm should run as non-root")
+	if pnpmContainer.SecurityContext.RunAsNonRoot == nil || *pnpmContainer.SecurityContext.RunAsNonRoot {
+		t.Error("init-pnpm should run as root")
 	}
 
 	// pnpm-tmp volume should exist
@@ -5208,8 +5208,8 @@ func TestBuildStatefulSet_RuntimeDeps_Python(t *testing.T) {
 	if pythonContainer.SecurityContext.ReadOnlyRootFilesystem == nil || *pythonContainer.SecurityContext.ReadOnlyRootFilesystem {
 		t.Error("init-python should have writable root filesystem")
 	}
-	if pythonContainer.SecurityContext.RunAsNonRoot == nil || !*pythonContainer.SecurityContext.RunAsNonRoot {
-		t.Error("init-python should run as non-root")
+	if pythonContainer.SecurityContext.RunAsNonRoot == nil || *pythonContainer.SecurityContext.RunAsNonRoot {
+		t.Error("init-python should run as root")
 	}
 
 	// python-tmp volume should exist
@@ -7932,11 +7932,11 @@ func TestBuildStatefulSet_WebTerminalEnabled(t *testing.T) {
 	if sc.ReadOnlyRootFilesystem == nil || *sc.ReadOnlyRootFilesystem {
 		t.Error("web-terminal: readOnlyRootFilesystem should be false")
 	}
-	if sc.RunAsUser == nil || *sc.RunAsUser != 1000 {
-		t.Errorf("web-terminal: runAsUser = %v, want 1000", sc.RunAsUser)
+	if sc.RunAsUser == nil || *sc.RunAsUser != 0 {
+		t.Errorf("web-terminal: runAsUser = %v, want 0", sc.RunAsUser)
 	}
-	if sc.RunAsNonRoot == nil || !*sc.RunAsNonRoot {
-		t.Error("web-terminal: runAsNonRoot should be true")
+	if sc.RunAsNonRoot == nil || *sc.RunAsNonRoot {
+		t.Error("web-terminal: runAsNonRoot should be false")
 	}
 	if sc.AllowPrivilegeEscalation == nil || *sc.AllowPrivilegeEscalation {
 		t.Error("web-terminal: allowPrivilegeEscalation should be false")

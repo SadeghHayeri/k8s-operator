@@ -299,18 +299,19 @@ type CABundleSpec struct {
 
 // PodSecurityContextSpec defines pod-level security context
 type PodSecurityContextSpec struct {
-	// RunAsUser is the UID to run the entrypoint of the container process
-	// +kubebuilder:default=1000
+	// RunAsUser is the UID to run the entrypoint of the container process.
+	// Defaults to 0 (root) so users can install custom tools.
+	// +kubebuilder:default=0
 	// +optional
 	RunAsUser *int64 `json:"runAsUser,omitempty"`
 
 	// RunAsGroup is the GID to run the entrypoint of the container process
-	// +kubebuilder:default=1000
+	// +kubebuilder:default=0
 	// +optional
 	RunAsGroup *int64 `json:"runAsGroup,omitempty"`
 
 	// FSGroup is a special supplemental group that applies to all containers
-	// +kubebuilder:default=1000
+	// +kubebuilder:default=0
 	// +optional
 	FSGroup *int64 `json:"fsGroup,omitempty"`
 
@@ -321,8 +322,10 @@ type PodSecurityContextSpec struct {
 	// +optional
 	FSGroupChangePolicy *corev1.PodFSGroupChangePolicy `json:"fsGroupChangePolicy,omitempty"`
 
-	// RunAsNonRoot indicates that the container must run as a non-root user
-	// +kubebuilder:default=true
+	// RunAsNonRoot indicates that the container must run as a non-root user.
+	// Defaults to false so users can install custom tools as root.
+	// AllowPrivilegeEscalation=false and DROP ALL capabilities are still enforced.
+	// +kubebuilder:default=false
 	// +optional
 	RunAsNonRoot *bool `json:"runAsNonRoot,omitempty"`
 }
@@ -334,9 +337,9 @@ type ContainerSecurityContextSpec struct {
 	// +optional
 	AllowPrivilegeEscalation *bool `json:"allowPrivilegeEscalation,omitempty"`
 
-	// ReadOnlyRootFilesystem mounts the container's root filesystem as read-only
-	// The PVC at ~/.openclaw/ provides writable home, and a /tmp emptyDir handles temp files
-	// +kubebuilder:default=true
+	// ReadOnlyRootFilesystem mounts the container's root filesystem as read-only.
+	// Defaults to false so users can install custom tools (apt-get, pip, etc.).
+	// +kubebuilder:default=false
 	// +optional
 	ReadOnlyRootFilesystem *bool `json:"readOnlyRootFilesystem,omitempty"`
 

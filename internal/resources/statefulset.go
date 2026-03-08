@@ -106,7 +106,7 @@ func BuildStatefulSet(instance *openclawv1alpha1.OpenClawInstance, gatewayTokenS
 // buildPodSecurityContext creates the pod-level security context
 func buildPodSecurityContext(instance *openclawv1alpha1.OpenClawInstance) *corev1.PodSecurityContext {
 	psc := &corev1.PodSecurityContext{
-		RunAsNonRoot: Ptr(true),
+		RunAsNonRoot: Ptr(false),
 		SeccompProfile: &corev1.SeccompProfile{
 			Type: corev1.SeccompProfileTypeRuntimeDefault,
 		},
@@ -118,17 +118,17 @@ func buildPodSecurityContext(instance *openclawv1alpha1.OpenClawInstance) *corev
 		if spec.RunAsUser != nil {
 			psc.RunAsUser = spec.RunAsUser
 		} else {
-			psc.RunAsUser = Ptr(int64(1000))
+			psc.RunAsUser = Ptr(int64(0))
 		}
 		if spec.RunAsGroup != nil {
 			psc.RunAsGroup = spec.RunAsGroup
 		} else {
-			psc.RunAsGroup = Ptr(int64(1000))
+			psc.RunAsGroup = Ptr(int64(0))
 		}
 		if spec.FSGroup != nil {
 			psc.FSGroup = spec.FSGroup
 		} else {
-			psc.FSGroup = Ptr(int64(1000))
+			psc.FSGroup = Ptr(int64(0))
 		}
 		if spec.FSGroupChangePolicy != nil {
 			psc.FSGroupChangePolicy = spec.FSGroupChangePolicy
@@ -137,9 +137,9 @@ func buildPodSecurityContext(instance *openclawv1alpha1.OpenClawInstance) *corev
 			psc.RunAsNonRoot = spec.RunAsNonRoot
 		}
 	} else {
-		psc.RunAsUser = Ptr(int64(1000))
-		psc.RunAsGroup = Ptr(int64(1000))
-		psc.FSGroup = Ptr(int64(1000))
+		psc.RunAsUser = Ptr(int64(0))
+		psc.RunAsGroup = Ptr(int64(0))
+		psc.FSGroup = Ptr(int64(0))
 	}
 
 	return psc
@@ -149,8 +149,7 @@ func buildPodSecurityContext(instance *openclawv1alpha1.OpenClawInstance) *corev
 func buildContainerSecurityContext(instance *openclawv1alpha1.OpenClawInstance) *corev1.SecurityContext {
 	sc := &corev1.SecurityContext{
 		AllowPrivilegeEscalation: Ptr(false),
-		ReadOnlyRootFilesystem:   Ptr(true), // PVC at ~/.openclaw/ + /tmp emptyDir provide writable paths
-		RunAsNonRoot:             Ptr(true),
+		ReadOnlyRootFilesystem:   Ptr(false),
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{"ALL"},
 		},
@@ -488,7 +487,7 @@ func buildInitContainers(instance *openclawv1alpha1.OpenClawInstance, skillPacks
 			SecurityContext: &corev1.SecurityContext{
 				AllowPrivilegeEscalation: Ptr(false),
 				ReadOnlyRootFilesystem:   Ptr(readOnlyRoot),
-				RunAsNonRoot:             Ptr(true),
+				RunAsNonRoot:             Ptr(false),
 				Capabilities: &corev1.Capabilities{
 					Drop: []corev1.Capability{"ALL"},
 				},
@@ -726,7 +725,7 @@ func buildSkillsInitContainer(instance *openclawv1alpha1.OpenClawInstance) *core
 		SecurityContext: &corev1.SecurityContext{
 			AllowPrivilegeEscalation: Ptr(false),
 			ReadOnlyRootFilesystem:   Ptr(false), // npx needs to write to node_modules
-			RunAsNonRoot:             Ptr(true),
+			RunAsNonRoot:             Ptr(false),
 			Capabilities: &corev1.Capabilities{
 				Drop: []corev1.Capability{"ALL"},
 			},
@@ -784,7 +783,7 @@ pnpm --version`
 		SecurityContext: &corev1.SecurityContext{
 			AllowPrivilegeEscalation: Ptr(false),
 			ReadOnlyRootFilesystem:   Ptr(false), // corepack writes to node internals
-			RunAsNonRoot:             Ptr(true),
+			RunAsNonRoot:             Ptr(false),
 			Capabilities: &corev1.Capabilities{
 				Drop: []corev1.Capability{"ALL"},
 			},
@@ -849,7 +848,7 @@ uv --version`
 		SecurityContext: &corev1.SecurityContext{
 			AllowPrivilegeEscalation: Ptr(false),
 			ReadOnlyRootFilesystem:   Ptr(false), // uv needs writable paths
-			RunAsNonRoot:             Ptr(true),
+			RunAsNonRoot:             Ptr(false),
 			Capabilities: &corev1.Capabilities{
 				Drop: []corev1.Capability{"ALL"},
 			},
@@ -1349,8 +1348,8 @@ func buildWebTerminalContainer(instance *openclawv1alpha1.OpenClawInstance) core
 		SecurityContext: &corev1.SecurityContext{
 			AllowPrivilegeEscalation: Ptr(false),
 			ReadOnlyRootFilesystem:   Ptr(false), // ttyd needs writable rootfs
-			RunAsNonRoot:             Ptr(true),
-			RunAsUser:                Ptr(int64(1000)), // same as main container
+			RunAsNonRoot:             Ptr(false),
+			RunAsUser:                Ptr(int64(0)), // same as main container
 			Capabilities: &corev1.Capabilities{
 				Drop: []corev1.Capability{"ALL"},
 			},

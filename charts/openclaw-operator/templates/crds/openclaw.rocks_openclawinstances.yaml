@@ -5590,10 +5590,10 @@ spec:
                             x-kubernetes-list-type: atomic
                         type: object
                       readOnlyRootFilesystem:
-                        default: true
+                        default: false
                         description: |-
-                          ReadOnlyRootFilesystem mounts the container's root filesystem as read-only
-                          The PVC at ~/.openclaw/ provides writable home, and a /tmp emptyDir handles temp files
+                          ReadOnlyRootFilesystem mounts the container's root filesystem as read-only.
+                          Defaults to false so users can install custom tools (apt-get, pip, etc.).
                         type: boolean
                     type: object
                   networkPolicy:
@@ -5823,7 +5823,7 @@ spec:
                     description: PodSecurityContext holds pod-level security attributes
                     properties:
                       fsGroup:
-                        default: 1000
+                        default: 0
                         description: FSGroup is a special supplemental group that
                           applies to all containers
                         format: int64
@@ -5838,20 +5838,23 @@ spec:
                         - Always
                         type: string
                       runAsGroup:
-                        default: 1000
+                        default: 0
                         description: RunAsGroup is the GID to run the entrypoint of
                           the container process
                         format: int64
                         type: integer
                       runAsNonRoot:
-                        default: true
-                        description: RunAsNonRoot indicates that the container must
-                          run as a non-root user
+                        default: false
+                        description: |-
+                          RunAsNonRoot indicates that the container must run as a non-root user.
+                          Defaults to false so users can install custom tools as root.
+                          AllowPrivilegeEscalation=false and DROP ALL capabilities are still enforced.
                         type: boolean
                       runAsUser:
-                        default: 1000
-                        description: RunAsUser is the UID to run the entrypoint of
-                          the container process
+                        default: 0
+                        description: |-
+                          RunAsUser is the UID to run the entrypoint of the container process.
+                          Defaults to 0 (root) so users can install custom tools.
                         format: int64
                         type: integer
                     type: object

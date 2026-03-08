@@ -69,7 +69,7 @@ Every request is validated against the instance's allowlist policy. Protected co
 |---|---|---|
 | **Declarative** | Single CRD | One resource defines the entire stack: StatefulSet, Service, RBAC, NetworkPolicy, PVC, PDB, Ingress, and more |
 | **Adaptive** | Agent self-configure | Agents autonomously install skills, patch config, and adapt their environment via the K8s API - every change validated against an allowlist policy |
-| **Secure** | Hardened by default | Non-root (UID 1000), read-only root filesystem, all capabilities dropped, seccomp RuntimeDefault, default-deny NetworkPolicy, validating webhook |
+| **Secure** | Hardened by default | Root (UID 0) with all capabilities dropped and privilege escalation disabled, seccomp RuntimeDefault, default-deny NetworkPolicy, validating webhook |
 | **Observable** | Built-in metrics | Prometheus metrics, ServiceMonitor integration, structured JSON logging, Kubernetes events |
 | **Flexible** | Provider-agnostic config | Use any AI provider (Anthropic, OpenAI, or others) via environment variables and inline or external config |
 | **Config Modes** | Merge or overwrite | `overwrite` replaces config on restart; `merge` deep-merges with PVC config, preserving runtime changes. Config is restored on every container restart via init container. |
@@ -705,8 +705,8 @@ The operator follows a **secure-by-default** philosophy. Every instance ships wi
 
 ### Defaults
 
-- **Non-root execution**: containers run as UID 1000; root (UID 0) is blocked by the validating webhook (exception: Ollama sidecar requires root per the official image)
-- **Read-only root filesystem**: enabled by default for the main container and the Chromium sidecar; the PVC at `~/.openclaw/` provides writable home, and a `/tmp` emptyDir handles temp files
+- **Root execution with restricted capabilities**: containers run as UID 0 (root) so users can install custom tools, but with `AllowPrivilegeEscalation=false` and all Linux capabilities dropped - root inside the container cannot escape the namespace or mount host filesystems
+- **Writable root filesystem**: the main container filesystem is writable by default to allow tool installation; the PVC at `~/.openclaw/` provides persistent storage
 - **All capabilities dropped**: no ambient Linux capabilities
 - **Seccomp RuntimeDefault**: syscall filtering enabled
 - **Default-deny NetworkPolicy**: only DNS (53) and HTTPS (443) egress allowed; ingress limited to same namespace

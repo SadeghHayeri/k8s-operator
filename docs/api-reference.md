@@ -144,18 +144,18 @@ Security-related configuration for the instance.
 
 | Field                 | Type                          | Default          | Description                                                                                |
 |-----------------------|-------------------------------|------------------|--------------------------------------------------------------------------------------------|
-| `runAsUser`           | `*int64`                      | `1000`           | UID to run as. Setting to `0` is rejected by webhook.                                      |
-| `runAsGroup`          | `*int64`                      | `1000`           | GID to run as.                                                                             |
-| `fsGroup`             | `*int64`                      | `1000`           | Supplemental group for volume ownership.                                                   |
+| `runAsUser`           | `*int64`                      | `0`              | UID to run as. Defaults to root (0) so users can install custom tools.                     |
+| `runAsGroup`          | `*int64`                      | `0`              | GID to run as.                                                                             |
+| `fsGroup`             | `*int64`                      | `0`              | Supplemental group for volume ownership.                                                   |
 | `fsGroupChangePolicy` | `*PodFSGroupChangePolicy`    | --               | Behavior for changing volume ownership. `OnRootMismatch` skips recursive chown when ownership already matches, improving startup time for large PVCs. `Always` recursively chowns on every mount (Kubernetes default). |
-| `runAsNonRoot`        | `*bool`                       | `true`           | Require non-root execution. Warns if set to `false`.                                       |
+| `runAsNonRoot`        | `*bool`                       | `false`          | Require non-root execution. `AllowPrivilegeEscalation=false` and `DROP ALL` capabilities are always enforced regardless of this setting. |
 
 #### spec.security.containerSecurityContext
 
 | Field                      | Type              | Default | Description                                                    |
 |----------------------------|-------------------|---------|----------------------------------------------------------------|
 | `allowPrivilegeEscalation` | `*bool`           | `false` | Allow privilege escalation. Warns if set to `true`.            |
-| `readOnlyRootFilesystem`   | `*bool`           | `true`  | Mount root filesystem as read-only. The PVC at `~/.openclaw/` and `/tmp` emptyDir provide writable paths. |
+| `readOnlyRootFilesystem`   | `*bool`           | `false` | Mount root filesystem as read-only. Defaults to false so users can install custom tools. |
 | `capabilities`             | `*Capabilities`   | Drop ALL | Linux capabilities to add or drop.                            |
 
 #### spec.security.networkPolicy
@@ -1147,11 +1147,11 @@ spec:
 
   security:
     podSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 1000
+      runAsUser: 0
+      runAsGroup: 0
+      fsGroup: 0
       fsGroupChangePolicy: OnRootMismatch
-      runAsNonRoot: true
+      runAsNonRoot: false
     containerSecurityContext:
       allowPrivilegeEscalation: false
     networkPolicy:
