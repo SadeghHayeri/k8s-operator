@@ -166,7 +166,7 @@ var _ = Describe("OpenClawInstance Controller", func() {
 	})
 
 	Context("When StatefulSet security contexts", func() {
-		It("Should enforce non-root execution", func() {
+		It("Should enforce restricted container execution", func() {
 			instance := &openclawv1alpha1.OpenClawInstance{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "security-test",
@@ -177,12 +177,12 @@ var _ = Describe("OpenClawInstance Controller", func() {
 
 			sts := resources.BuildStatefulSet(instance, "", nil)
 
-			// Verify pod security context
+			// Verify pod security context - runs as root by default to allow tool installation
 			Expect(sts.Spec.Template.Spec.SecurityContext).NotTo(BeNil())
-			Expect(*sts.Spec.Template.Spec.SecurityContext.RunAsNonRoot).To(BeTrue())
-			Expect(*sts.Spec.Template.Spec.SecurityContext.RunAsUser).To(Equal(int64(1000)))
+			Expect(*sts.Spec.Template.Spec.SecurityContext.RunAsNonRoot).To(BeFalse())
+			Expect(*sts.Spec.Template.Spec.SecurityContext.RunAsUser).To(Equal(int64(0)))
 
-			// Verify container security context
+			// Verify container security context - privilege escalation and capabilities still restricted
 			container := sts.Spec.Template.Spec.Containers[0]
 			Expect(container.SecurityContext).NotTo(BeNil())
 			Expect(*container.SecurityContext.AllowPrivilegeEscalation).To(BeFalse())
